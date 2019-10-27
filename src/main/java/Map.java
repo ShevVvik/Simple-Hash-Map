@@ -2,8 +2,7 @@ public interface Map<K, V> {
 
     int size();
 
-    HashMap.Node<K, V> getNode(K key);
-    HashMap.Node<K, V> getNode(int index);
+    V get(K key);
 
     V put(K key, V value);
 

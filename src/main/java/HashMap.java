@@ -1,3 +1,4 @@
+import java.util.Objects;
 
 public class HashMap<K, V> implements Map<K, V> {
 
@@ -19,6 +20,22 @@ public class HashMap<K, V> implements Map<K, V> {
 
         public void setNextNode(Node<K, V> node) {
             this.next = node;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Node<?, ?> node = (Node<?, ?>) o;
+            return hash == node.hash &&
+                    Objects.equals(key, node.key) &&
+                    Objects.equals(value, node.value) &&
+                    Objects.equals(next, node.next);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(hash, key, value, next);
         }
     }
 
@@ -57,13 +74,14 @@ public class HashMap<K, V> implements Map<K, V> {
         }
 
         Node<K, V> head = array[index];
-        while (head.next != null) {
-            if ((head.hash == hash) && (head.key.equals(key))) {
+        while (head != null) {
+            if ((head.hash == hash) && (key.equals(head.key))) {
                 V oldValue = head.value;
                 head.value = value;
                 this.size++;
                 return oldValue;
             }
+            head = head.next;
         }
 
         addNodeToBucket(index, hash, key, value);
@@ -80,7 +98,7 @@ public class HashMap<K, V> implements Map<K, V> {
 
     private V putForNullKey(V value) {
         Node<K, V> head = array[0];
-        while (head.next != null) {
+        while (head != null) {
             if (head.key == null) {
                 V oldValue = head.value;
                 head.value = value;
@@ -88,7 +106,7 @@ public class HashMap<K, V> implements Map<K, V> {
                 return oldValue;
             }
         }
-        addNodeToBucket(0, 0, null, null);
+        addNodeToBucket(0, 0, null, value);
         return null;
     }
 
@@ -117,6 +135,7 @@ public class HashMap<K, V> implements Map<K, V> {
             nodeBefore = nodeCurrent;
             nodeCurrent = nodeCurrent.next;
         }
+        this.size--;
     }
 
     @Override
@@ -125,20 +144,20 @@ public class HashMap<K, V> implements Map<K, V> {
     }
 
     @Override
-    public Node getNode(Object key) {
-        int hash = hash(key);
+    public V get(K key) {
+        Node<K, V> node = getNode(hash(key), key);
+        return (node == null) ? null : node.value;
+    }
+
+    Node getNode(int hash, K key) {
         int index = indexFor(hash, capacity);
         Node node = array[index];
+
         while (node != null) {
-            if (node.hash == hash && node.key.equals(key)) return node;
+            if ((node.hash == hash) && ((key == node.key) || (key != null && key.equals(node.key)))) return node;
             node = node.next;
         }
         return null;
-    }
-
-    @Override
-    public Node getNode(int index) {
-        return array[index];
     }
 
     @Override
